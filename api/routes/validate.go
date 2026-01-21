@@ -37,13 +37,14 @@ type Response struct {
 const baseURL string = "https://api.ssllabs.com/api/v2/analyze?host=%s"
 
 func ValidateRoute(w http.ResponseWriter, r *http.Request) {
-	user := map[string]bool{"error": true}
 
 	host := r.URL.Query().Get("host")
 
 	if host == "" {
+		res := map[string]string{"error": "host query param not found"}
+
 		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, user)
+		render.JSON(w, r, res)
 		return
 	}
 
@@ -52,14 +53,18 @@ func ValidateRoute(w http.ResponseWriter, r *http.Request) {
 	resp, err := http.Get(url)
 
 	if err != nil {
+		res := map[string]string{"error": "SSL request went wrong"}
+
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, user)
+		render.JSON(w, r, res)
 		return
 	}
 
 	if resp.StatusCode != 200 {
+		res := map[string]string{"error": "SSL API wrong result"}
+
 		render.Status(r, http.StatusPaymentRequired)
-		render.JSON(w, r, user)
+		render.JSON(w, r, res)
 		return
 	}
 
@@ -70,9 +75,11 @@ func ValidateRoute(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(resp.Body).Decode(&response)
 
 	if err != nil {
+		res := map[string]string{"error": "Unable to parse response from server"}
+
 		fmt.Println("failed: %w", err)
 		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, user)
+		render.JSON(w, r, res)
 		return
 	}
 
