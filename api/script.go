@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func main() {
+func script() {
 	const baseURL string = "https://api.ssllabs.com/api/v2/analyze?host=www.ssllabs.com"
 
 	resp, err := http.Get(baseURL)
