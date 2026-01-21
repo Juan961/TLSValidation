@@ -5,34 +5,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TSL Challenge</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+  </style>
 </head>
 
 <body>
-  <div id="app" class="w-full h-screen bg-[#0f2320] text-white flex items-center justify-center">
-    <main class="max-w-[500px] w-full">
-      <h1 class="text-3xl font-bold underline">
-        TSL Challenge
-      </h1>
+  <div id="app" class="w-full h-screen bg-teal-950 text-white flex items-center justify-center">
+    <main class="max-w-[600px] w-full p-4 flex flex-col gap-4">
+      <h1 class="text-5xl font-bold">Validate TLS security</h1>
 
       <form @submit.prevent="validate">
-        <label for="domain">Domain:</label>
-        <input v-model="domain" id="domain" name="domain" type="text" placeholder="Enter domain"
-          class="border p-2 rounded w-full mb-4" minlength="1" maxlength="255" />
-        <button type="submit" class="cursor-pointer px-4 py-2 rounded bg-[#00c2a8]" :disabled="loading">Check TLS
-          Security</button>
+        <label for="domain" class="text-gray-400/80 mb-4 text-sm">Domain:</label>
+        <input v-model="domain" id="domain" name="domain" type="text" placeholder="www.ssllabs.com"
+          class="border border-gray-400 px-4 py-2 rounded w-full my-4" minlength="1" maxlength="255" />
+        <button type="submit" class="cursor-pointer font-bold text-teal-950 px-4 py-2 rounded bg-teal-500" :disabled="loading">{{ loading ? 'Loading...' : 'Check TLS Security' }}</button>
       </form>
 
-      <section v-if="loading">
-        <p>Loading</p>
-      </section>
-
-      <section v-else-if="responseValue">
-        <p v-text="responseValue"></p>
-        <ul>
-          <li v-for="(endpoint, index) in responseValue.endpoints" :key="index">
-            <p v-text="endpoint"></p>
+      <section v-if="responseValue">
+        <p class="text-gray-400/80">Host: <span class="text-white"> {{ responseValue.host }} </span> </p>
+        <p class="text-gray-400/80">Port: <span class="text-white"> {{ responseValue.port }} </span> </p>
+        <p class="text-gray-400/80">Protocol used: <span class="text-white"> {{ responseValue.protocol }} </span> </p>
+        <p class="text-gray-400/80">Test took: <span class="text-white"> {{ responseValue.testTime - responseValue.startTime }}ms </span> </p>
+        <p class="text-gray-400/80">Test was made in: <span class="text-white"> {{ new Date(responseValue.testTime).toISOString().replace("T", " ") }} </span> </p>
+        <p class="text-sm my-2">URL ENDPOINTS:</p>
+        <ul class="flex flex-col gap-2">
+          <li v-for="(endpoint, index) in responseValue.endpoints" :key="index" class="border-l pl-4 border-teal-500">
+            <p class="text-gray-400/80" >IP Address: <span class="text-white"> {{ endpoint.ipAddress }} </span></p>
+            <p class="text-gray-400/80" >Grade: <span class="text-white"> {{ endpoint.grade }} </span></p>
+            <p class="text-gray-400/80" >Endpoint test duration: <span class="text-white"> {{ endpoint.duration }}ms </span> </p>
+            <p v-if="endpoint.hasWarnings" class="text-yellow-500 font-bold">Be careful, this endpoint has warnings</p>
+            <p v-if="endpoint.isExceptional" class="text-teal-500 font-bold">This endpoint has an exceptional configuration</p>
           </li>
         </ul>
       </section>
@@ -49,9 +57,6 @@
         const responseValue = ref(null)
 
         const validate = async () => {
-          console.log("Hello")
-          console.log(domain.value.length)
-
           if (loading.value) return
           if (domain.value.length < 1 || domain.value.length > 255) return
 
