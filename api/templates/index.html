@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TSL Challenge</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<body>
+  <div id="app" class="w-full h-screen bg-[#0f2320] text-white flex items-center justify-center">
+    <main class="">
+      <h1 class="text-3xl font-bold underline">
+        TSL Challenge
+      </h1>
+
+      <form @submit.prevent="validate">
+        <label for="domain">Domain:</label>
+        <input id="domain" name="domain" type="text" placeholder="Enter domain"
+          class="border p-2 rounded w-full mb-4" />
+        <button type="submit" class="px-4 py-2 rounded bg-[#00c2a8]">Check TLS Security</button>
+      </form>
+    </main>
+  </div>
+
+  <script>
+    const { createApp } = Vue
+
+    createApp({
+      setup() {
+        const validate = async () => {
+          console.log('Validating TLS security...')
+        }
+
+        return {
+          validate
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>
