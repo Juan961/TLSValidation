@@ -1,12 +1,12 @@
 package routes
 
 import (
-	"html/template"
 	"net/http"
+	"os"
 )
 
 func HomeRoute(w http.ResponseWriter, r *http.Request) {
-	tmpl, err := template.ParseFiles("templates/index.html")
+	content, err := os.ReadFile("templates/index.html")
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -14,11 +14,5 @@ func HomeRoute(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	err = tmpl.Execute(w, nil)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	w.Write(content)
 }
