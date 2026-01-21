@@ -11,34 +11,72 @@
 
 <body>
   <div id="app" class="w-full h-screen bg-[#0f2320] text-white flex items-center justify-center">
-    <main class="">
+    <main class="max-w-[500px] w-full">
       <h1 class="text-3xl font-bold underline">
         TSL Challenge
       </h1>
 
       <form @submit.prevent="validate">
         <label for="domain">Domain:</label>
-        <input id="domain" name="domain" type="text" placeholder="Enter domain"
-          class="border p-2 rounded w-full mb-4" />
-        <button type="submit" class="px-4 py-2 rounded bg-[#00c2a8]">Check TLS Security</button>
+        <input v-model="domain" id="domain" name="domain" type="text" placeholder="Enter domain"
+          class="border p-2 rounded w-full mb-4" minlength="1" maxlength="255" />
+        <button type="submit" class="cursor-pointer px-4 py-2 rounded bg-[#00c2a8]" :disabled="loading">Check TLS
+          Security</button>
       </form>
+
+      <section v-if="loading">
+        <p>Loading</p>
+      </section>
+
+      <section v-else-if="responseValue">
+        <p v-text="responseValue"></p>
+        <ul>
+          <li v-for="(endpoint, index) in responseValue.endpoints" :key="index">
+            <p v-text="endpoint"></p>
+          </li>
+        </ul>
+      </section>
     </main>
   </div>
 
   <script>
-    const { createApp } = Vue
+    const { createApp, ref } = Vue
 
     createApp({
       setup() {
+        const domain = ref("www.ssllabs.com")
+        const loading = ref(false)
+        const responseValue = ref(null)
+
         const validate = async () => {
-          console.log('Validating TLS security...')
+          console.log("Hello")
+          console.log(domain.value.length)
+
+          if (loading.value) return
+          if (domain.value.length < 1 || domain.value.length > 255) return
+
+          loading.value = true
+
+          responseValue.value = null
+
+          const response = await fetch(`/validate?host=${domain.value}`, {
+            method: "GET"
+          })
+
+          responseValue.value = await response.json()
+
+          loading.value = false
         }
 
         return {
+          domain,
+          loading,
+          responseValue,
           validate
         }
       }
     }).mount('#app')
   </script>
 </body>
+
 </html>
