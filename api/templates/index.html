@@ -5,7 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TSL Challenge</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap"
+    rel="stylesheet" />
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <style>
@@ -16,7 +17,7 @@
 </head>
 
 <body>
-  <div id="app" class="w-full h-screen bg-teal-950 text-white flex items-center justify-center">
+  <div id="app" class="w-full min-h-screen bg-teal-950 text-white flex items-center justify-center">
     <main class="max-w-[600px] w-full p-4 flex flex-col gap-4">
       <h1 class="text-5xl font-bold">Validate TLS security</h1>
 
@@ -43,7 +44,7 @@
         <ul class="flex flex-col gap-2">
           <li v-for="(endpoint, index) in responseValue.endpoints" :key="index" class="border-l pl-4 border-teal-500">
             <p class="text-gray-400/80">IP Address: <span class="text-white"> {{ endpoint.ipAddress }} </span></p>
-            <p class="text-gray-400/80">Grade: <span class="text-white"> {{ endpoint.grade }} </span></p>
+            <p class="text-gray-400/80">Grade: <span :class="[gradeStyles[endpoint.grade].color]"> {{ endpoint.grade }} / {{ gradeStyles[endpoint.grade].message }}</span></p>
             <p class="text-gray-400/80">Endpoint test duration: <span class="text-white"> {{ endpoint.duration }}ms
               </span> </p>
             <p v-if="endpoint.hasWarnings" class="text-yellow-500 font-bold">Be careful, this endpoint has warnings</p>
@@ -65,6 +66,29 @@
         const responseValue = ref(null)
         const error = ref(null)
 
+        const gradeStyles = {
+          "A+": {
+            "color": "text-teal-500",
+            "message": "Exceptional configuration with HSTS enabled"
+          },
+          "A-": {
+            "color": "text-green-400",
+            "message": "Good configuration with minor warnings"
+          },
+          "A-F": {
+            "color": "text-yellow-500",
+            "message": "Standard grading range for server security"
+          },
+          "T": {
+            "color": "text-gray-400",
+            "message": "No trust (certificate not trusted by the browser)"
+          },
+          "M": {
+            "color": "text-red-500",
+            "message": "Certificate name mismatch"
+          }
+        }
+
         const validate = async () => {
           if (loading.value) return
           if (domain.value.length < 1 || domain.value.length > 255) return
@@ -75,7 +99,7 @@
           error.value = null
 
           try {
-            const response = await fetch(`/validate?host=${domain.value}`, {
+            const response = await fetch(`validate?host=${domain.value}`, {
               method: "GET"
             })
 
@@ -100,6 +124,8 @@
           domain,
           loading,
           responseValue,
+          error,
+          gradeStyles,
           validate
         }
       }
