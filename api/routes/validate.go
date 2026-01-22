@@ -63,7 +63,7 @@ func ValidateRoute(w http.ResponseWriter, r *http.Request) {
 	if resp.StatusCode != 200 {
 		res := map[string]string{"error": "SSL API wrong result"}
 
-		render.Status(r, http.StatusPaymentRequired)
+		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, res)
 		return
 	}
