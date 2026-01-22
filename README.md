@@ -11,8 +11,11 @@ Result:
 To run the tool locally in the command line, use:
 
 ```bash
-# go run script.go <host> <startNew|optional>
+# go run script.go <host> [new]
+# Example to force a new scan:
 go run script.go www.ssllabs.com new
+# Example to use cached results if available:
+go run script.go www.ssllabs.com
 ```
 
 ## 🚀 API Demo
@@ -21,7 +24,7 @@ To see a live demo of the application, visit: [https://801r8x12a2.execute-api.us
 
 ## 🛠️ API Development Setup
 
-To run the fool locally, follow these steps:
+To run the tool locally, follow these steps:
 
 ```bash
 cd api/
