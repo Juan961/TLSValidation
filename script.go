@@ -149,15 +149,16 @@ func main() {
 
 	validation, err := validateCache(obj.BaseURL + obj.NewAnalysis)
 
-	if obj_err != nil {
+	if err != nil {
 		log.Fatal(err)
 	}
 
 	if !validation.Finished {
+		fmt.Println("Result not found in cache, starting pulling a result")
 		validation, err = validationPulling(obj.BaseURL)
 	}
 
-	if obj_err != nil {
+	if err != nil {
 		log.Fatal(err)
 	}
 
