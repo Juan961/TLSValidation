@@ -71,6 +71,8 @@ func validationPulling(baseURL string) (ValidateResponse, error) {
 			valRes.Finished = true
 
 			finished = true
+		} else if response.Status == "ERROR" {
+			return valRes, errors.New("Error while pulling from new")
 		} else {
 			fmt.Println("Pending " + strconv.Itoa(response.Endpoints[0].Progress) + "%")
 		}
