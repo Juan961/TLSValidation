@@ -1,6 +1,10 @@
 # 🔒 TLS security validation
 
-Basic go api using chi as router and Vue.js for the frontend. The general purpouse is to program a go script to check the TLS security of a given domain.
+Objective: Program a go script to check the TLS security of a given domain using sslabs APIv2.
+
+Result:
+- CMD script to run the validation with pulling results until the scan is complete if needed.
+- API with a simple HTML frontend to input a domain and see the TLS security results cached from the API (does not support new scans).
 
 ## 🧑‍💻 CMD Script
 
