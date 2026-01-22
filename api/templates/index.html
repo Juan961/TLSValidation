@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TSL Challenge</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap"
+    rel="stylesheet" />
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app" class="w-full min-h-screen bg-teal-950 text-white flex items-center justify-center">
+    <main class="max-w-[600px] w-full p-4 flex flex-col gap-4">
+      <h1 class="text-5xl font-bold">Validate TLS security</h1>
+
+      <form @submit.prevent="validate">
+        <label for="domain" class="text-gray-400/80 mb-4 text-sm">Domain:</label>
+        <input v-model="domain" id="domain" name="domain" type="text" placeholder="www.ssllabs.com"
+          class="border border-gray-400 px-4 py-2 rounded w-full my-4" minlength="1" maxlength="255"
+          :readonly="loading" />
+        <button type="submit" class="cursor-pointer font-bold text-teal-950 px-4 py-2 rounded bg-teal-500"
+          :disabled="loading">{{ loading ? 'Loading...' : 'Check TLS Security' }}</button>
+      </form>
+
+      <section v-if="error">
+        <p class="text-red-500">{{error}}</p>
+      </section>
+      <section v-else-if="responseValue">
+        <div v-if="responseValue.status === 'ERROR'">
+          <p class="text-red-500">Something went wrong, check the domain</p>
+        </div>
+        <div v-else>
+          <p class="text-gray-400/80">Host: <span class="text-white"> {{ responseValue.host }} </span> </p>
+          <p class="text-gray-400/80">Port: <span class="text-white"> {{ responseValue.port }} </span> </p>
+          <p class="text-gray-400/80">Protocol used: <span class="text-white"> {{ responseValue.protocol }} </span> </p>
+          <p class="text-gray-400/80" v-if="responseValue.testTime - responseValue.startTime > 0">Test took: <span
+              class="text-white"> {{ responseValue.testTime -
+              responseValue.startTime }}ms </span> </p>
+          <p class="text-gray-400/80" v-if="responseValue.testTime - responseValue.startTime > 0">Test was made in:
+            <span class="text-white"> {{ new
+              Date(responseValue.testTime).toISOString().replace("T", " ") }} UTC </span>
+          </p>
+          <p class="text-gray-400/80" v-else>The test is currently running, check later to get the results</p>
+          <p class="text-sm my-2" v-if="responseValue.testTime - responseValue.startTime > 0">URL ENDPOINTS:</p>
+          <ul class="flex flex-col gap-2" v-if="responseValue.testTime - responseValue.startTime > 0">
+            <li v-for="(endpoint, index) in responseValue.endpoints" :key="index" class="border-l pl-4 border-teal-500">
+              <p class="text-gray-400/80">IP Address: <span class="text-white"> {{ endpoint.ipAddress }} </span></p>
+              <p class="text-gray-400/80">Grade: <span :class="[gradeStyles[endpoint.grade[0]].color]"> {{
+                  endpoint.grade }} / {{ gradeStyles[endpoint.grade[0]].message }}</span></p>
+              <p class="text-gray-400/80">Endpoint test duration: <span class="text-white"> {{ endpoint.duration }}ms
+                </span> </p>
+              <p v-if="endpoint.hasWarnings" class="text-yellow-500 font-bold">Be careful, this endpoint has warnings
+              </p>
+              <p v-if="endpoint.isExceptional" class="text-teal-500 font-bold">This endpoint has an exceptional
+                configuration</p>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const { createApp, ref } = Vue
+
+    createApp({
+      setup() {
+        const domain = ref("www.ssllabs.com")
+        const loading = ref(false)
+        const responseValue = ref(null)
+        const error = ref(null)
+
+        const gradeStyles = {
+          "A": { color: "text-green-400", message: "Excellent configuration" },
+          "B": { color: "text-yellow-500", message: "Average security" },
+          "C": { color: "text-orange-500", message: "Poor security" },
+          "D": { color: "text-red-500", message: "Extremely poor security" },
+          "F": { color: "text-red-700", message: "Insecure configuration" },
+          "T": { color: "text-gray-400", message: "No trust (certificate not trusted)" },
+          "M": { color: "text-red-500", message: "Certificate name mismatch" }
+        }
+
+        const validate = async () => {
+          if (loading.value) return
+          if (domain.value.length < 1 || domain.value.length > 255) return
+
+          loading.value = true
+
+          responseValue.value = null
+          error.value = null
+
+          try {
+            const response = await fetch(`validate?host=${domain.value}`, {
+              method: "GET"
+            })
+
+            const data = await response.json()
+
+            if (data.error) {
+              error.value = data.error
+            } else {
+              responseValue.value = data
+            }
+
+          } catch (error) {
+            console.error(error)
+
+            error.value = "Something went wrong"
+          }
+
+          loading.value = false
+        }
+
+        return {
+          domain,
+          loading,
+          responseValue,
+          error,
+          gradeStyles,
+          validate
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+
+</html>
