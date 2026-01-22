@@ -24,7 +24,7 @@
       <form @submit.prevent="validate">
         <label for="domain" class="text-gray-400/80 mb-4 text-sm">Domain:</label>
         <input v-model="domain" id="domain" name="domain" type="text" placeholder="www.ssllabs.com"
-          class="border border-gray-400 px-4 py-2 rounded w-full my-4" minlength="1" maxlength="255" />
+          class="border border-gray-400 px-4 py-2 rounded w-full my-4" minlength="1" maxlength="255" :readonly="loading" />
         <button type="submit" class="cursor-pointer font-bold text-teal-950 px-4 py-2 rounded bg-teal-500"
           :disabled="loading">{{ loading ? 'Loading...' : 'Check TLS Security' }}</button>
       </form>
@@ -36,15 +36,16 @@
         <p class="text-gray-400/80">Host: <span class="text-white"> {{ responseValue.host }} </span> </p>
         <p class="text-gray-400/80">Port: <span class="text-white"> {{ responseValue.port }} </span> </p>
         <p class="text-gray-400/80">Protocol used: <span class="text-white"> {{ responseValue.protocol }} </span> </p>
-        <p class="text-gray-400/80">Test took: <span class="text-white"> {{ responseValue.testTime -
+        <p class="text-gray-400/80" v-if="responseValue.testTime - responseValue.startTime > 0">Test took: <span class="text-white"> {{ responseValue.testTime -
             responseValue.startTime }}ms </span> </p>
-        <p class="text-gray-400/80">Test was made in: <span class="text-white"> {{ new
-            Date(responseValue.testTime).toISOString().replace("T", " ") }} </span> </p>
-        <p class="text-sm my-2">URL ENDPOINTS:</p>
-        <ul class="flex flex-col gap-2">
+        <p class="text-gray-400/80" v-if="responseValue.testTime - responseValue.startTime > 0">Test was made in: <span class="text-white"> {{ new
+            Date(responseValue.testTime).toISOString().replace("T", " ") }} UTC </span> </p>
+        <p class="text-gray-400/80" v-else>The test is currently running, check later to get the results</p>
+        <p class="text-sm my-2" v-if="responseValue.testTime - responseValue.startTime > 0">URL ENDPOINTS:</p>
+        <ul class="flex flex-col gap-2" v-if="responseValue.testTime - responseValue.startTime > 0">
           <li v-for="(endpoint, index) in responseValue.endpoints" :key="index" class="border-l pl-4 border-teal-500">
             <p class="text-gray-400/80">IP Address: <span class="text-white"> {{ endpoint.ipAddress }} </span></p>
-            <p class="text-gray-400/80">Grade: <span :class="[gradeStyles[endpoint.grade].color]"> {{ endpoint.grade }} / {{ gradeStyles[endpoint.grade].message }}</span></p>
+            <p class="text-gray-400/80">Grade: <span :class="[gradeStyles[endpoint.grade[0]].color]"> {{ endpoint.grade }} / {{ gradeStyles[endpoint.grade[0]].message }}</span></p>
             <p class="text-gray-400/80">Endpoint test duration: <span class="text-white"> {{ endpoint.duration }}ms
               </span> </p>
             <p v-if="endpoint.hasWarnings" class="text-yellow-500 font-bold">Be careful, this endpoint has warnings</p>
@@ -67,26 +68,13 @@
         const error = ref(null)
 
         const gradeStyles = {
-          "A+": {
-            "color": "text-teal-500",
-            "message": "Exceptional configuration with HSTS enabled"
-          },
-          "A-": {
-            "color": "text-green-400",
-            "message": "Good configuration with minor warnings"
-          },
-          "A-F": {
-            "color": "text-yellow-500",
-            "message": "Standard grading range for server security"
-          },
-          "T": {
-            "color": "text-gray-400",
-            "message": "No trust (certificate not trusted by the browser)"
-          },
-          "M": {
-            "color": "text-red-500",
-            "message": "Certificate name mismatch"
-          }
+          "A": { color: "text-green-400", message: "Excellent configuration" },
+          "B": { color: "text-yellow-500", message: "Average security" },
+          "C": { color: "text-orange-500", message: "Poor security" },
+          "D": { color: "text-red-500", message: "Extremely poor security" },
+          "F": { color: "text-red-700", message: "Insecure configuration" },
+          "T": { color: "text-gray-400", message: "No trust (certificate not trusted)" },
+          "M": { color: "text-red-500", message: "Certificate name mismatch" }
         }
 
         const validate = async () => {
