@@ -55,7 +55,7 @@ func validationPulling(baseURL string) (ValidateResponse, error) {
 	avgProgress := 0
 
 	for !finished {
-		time.Sleep(1 * time.Second)
+		time.Sleep(1 * time.Second) // TODO: Implemente exponential backoff retry based on progress
 
 		resp, err := http.Get(baseURL)
 
