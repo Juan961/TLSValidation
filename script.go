@@ -52,6 +52,7 @@ func validationPulling(baseURL string) (ValidateResponse, error) {
 	var valRes ValidateResponse
 
 	finished := false
+	avgProgress := 0
 
 	for !finished {
 		time.Sleep(1 * time.Second)
@@ -66,15 +67,21 @@ func validationPulling(baseURL string) (ValidateResponse, error) {
 
 		json.NewDecoder(resp.Body).Decode(&response)
 
-		if response.Status == "READY" {
+		switch response.Status {
+		case "READY":
 			valRes.Response = response
 			valRes.Finished = true
 
 			finished = true
-		} else if response.Status == "ERROR" {
+		case "ERROR":
 			return valRes, errors.New("Error while pulling from new")
-		} else {
-			fmt.Println("Pending " + strconv.Itoa(response.Endpoints[0].Progress) + "%")
+		default:
+			sum := 0
+			for _, endpoint := range response.Endpoints {
+				sum += endpoint.Progress
+			}
+			avgProgress = sum / len(response.Endpoints)
+			fmt.Println("Pending " + strconv.Itoa(avgProgress) + "%")
 		}
 	}
 
@@ -163,5 +170,15 @@ func main() {
 	}
 
 	fmt.Println("Finished, result:")
-	fmt.Println(validation.Response)
+	fmt.Println("Host: " + validation.Response.Host)
+	fmt.Println("Port: " + strconv.Itoa(validation.Response.Port))
+	fmt.Println("Protocol: " + validation.Response.Protocol)
+	fmt.Println("Endpoints: ")
+	for _, endpoint := range validation.Response.Endpoints {
+		fmt.Println("	- IP Address: " + endpoint.IpAddress)
+		fmt.Println("	- Grade: " + endpoint.Grade)
+		if endpoint.IsExceptional {
+			fmt.Println("	- Has exceptional config")
+		}
+	}
 }
