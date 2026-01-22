@@ -99,6 +99,10 @@ func validateCache(baseURL string) (ValidateResponse, error) {
 
 	json.NewDecoder(resp.Body).Decode(&response)
 
+	if response.Status == "ERROR" {
+		return valRes, errors.New("Error while getting response, check the host")
+	}
+
 	valRes.Finished = response.Status == "READY"
 
 	if valRes.Finished {
